@@ -1,0 +1,5 @@
+name: Distance
+description: Provide a standard way to store a date interval in Drupal
+package: Models
+type: module
+core: 8.x

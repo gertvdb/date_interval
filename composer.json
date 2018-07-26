@@ -1,0 +1,24 @@
+{
+  "name": "gertvdb/date_interval",
+  "type": "drupal-module",
+  "description": "Provide a standard way to store a date interval in Drupal",
+  "keywords": ["date_interval"],
+  "homepage": "https://github.com/gertvdb/date_interval",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Gert van den Buijs",
+      "email": "gertvandenbuijs@hotmail.com"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://packages.drupal.org/8"
+    }
+  ],
+  "require": {
+    "php": ">=7.1",
+    "drupal/core": "^8.0"
+  }
+}
