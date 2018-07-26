@@ -1,6 +1,6 @@
-# distance #
+# Date Interval #
 
-Provide a standard way to store distance and work with it.
+Provide a standard way to store a date interval in Drupal.
 
 # Usage #
 
@@ -8,21 +8,10 @@ Initialising the classes.
  
 ```
 
-use Drupal\distance\Distance;
+use Drupal\date_interval\DrupalDateInterval;
 
-$distance = new Distance(1.67, 'MI');
-$km = $distance->toKilometers();
-
-```
-
-Using the utility class.
-
-```
-
-use Drupal\distance\Utility\CoordinateCalculator;
-
-$distance = DistanceCalculator::calculateDistance($coordinate_1, $coordinate_2);
-$distances = DistanceCalculator::calculateCollectionDistance($coordinate_collection);
+$date_interval = DrupalDateInterval::createFromIntervalSpec('P2D');
+$interval = $date_interval->format('%d', FALSE, FALSE, TRUE);
 
 ```
 
@@ -30,4 +19,4 @@ $distances = DistanceCalculator::calculateCollectionDistance($coordinate_collect
 
 `1.0.0`
 * Basic setup of the module.
-* Provide distance class.
+* Provide a DateIntervalPlus and a DrupalDateInterval class.
