@@ -1,4 +1,4 @@
-name: Distance
+name: Date Interval
 description: Provide a standard way to store a date interval in Drupal
 package: Models
 type: module
