@@ -14,6 +14,8 @@ namespace Drupal\date_interval;
  */
 class DateIntervalPlus extends \DateInterval {
 
+  const FORMAT = '%Y year %M months %D days %H hours %I minutes %S seconds';
+
   /**
    * The spec used to create the interval.
    *
@@ -36,6 +38,64 @@ class DateIntervalPlus extends \DateInterval {
   protected $dateIntervalObject = NULL;
 
   /**
+   * Create a DateIntervalPlus from php \DateInterval.
+   *
+   * @param string $interval_spec
+   *   A interval spec.
+   * @param array $settings
+   *   An array of settings.
+   *
+   * @return static
+   *   A DateIntervalPlus object
+   */
+  public static function createFromIntervalSpec(string $interval_spec, array $settings = []) {
+    return new static($interval_spec, $settings);
+  }
+
+  /**
+   * Create a DateIntervalPlus from php \DateInterval.
+   *
+   * @param \DateInterval $date_interval
+   *   A php DateInterval object.
+   * @param array $settings
+   *   An array of settings.
+   *
+   * @return static
+   *   A DateIntervalPlus object
+   */
+  public static function createFromDateInterval(\DateInterval $date_interval, array $settings = []) {
+    $spec = 'P' . $date_interval->y . 'Y' . $date_interval->m . 'M' . $date_interval->d . 'DT' . $date_interval->h . 'H' . $date_interval->i . 'M' . $date_interval->s . 'S';
+    return new static($spec, $settings);
+  }
+
+  /**
+   * Create a DateIntervalPlus from keyed array.
+   *
+   * @param array $interval_array
+   *   A keyed array (years, months, days, hours, minutes, seconds).
+   * @param array $settings
+   *   An array of settings.
+   *
+   * @return static
+   *   A DateIntervalPlus object
+   */
+  public static function createFromArray(array $interval_array, array $settings = []) {
+
+    // Make sure all values are set and are numeric.
+    $values = [
+      'years' => isset($interval_array['years']) && is_numeric($interval_array['years']) ? $interval_array['years'] : 0,
+      'months' => isset($interval_array['months']) && is_numeric($interval_array['months']) ? $interval_array['months'] : 0,
+      'days' => isset($interval_array['days']) && is_numeric($interval_array['days']) ? $interval_array['days'] : 0,
+      'hours' => isset($interval_array['hours']) && is_numeric($interval_array['hours']) ? $interval_array['hours'] : 0,
+      'minutes' => isset($interval_array['minutes']) && is_numeric($interval_array['minutes']) ? $interval_array['minutes'] : 0,
+      'seconds' => isset($interval_array['seconds']) && is_numeric($interval_array['seconds']) ? $interval_array['seconds'] : 0,
+    ];
+
+    $spec = 'P' . $values['years'] . 'Y' . $values['months'] . 'M' . $values['days'] . 'DT' . $values['hours'] . 'H' . $values['minutes'] . 'M' . $values['seconds'] . 'S';
+    return new static($spec, $settings);
+  }
+
+  /**
    * Constructs a date interval plus object.
    *
    * @param string $interval_spec
@@ -51,7 +111,7 @@ class DateIntervalPlus extends \DateInterval {
     $this->langcode = !empty($settings['langcode']) ? $settings['langcode'] : NULL;
 
     // Store the spec used to create the interval.
-    $this->intervalSpec = $interval_spec;
+    $this->intervalSpec = $this->prepareSpec($interval_spec);
 
     try {
       $this->dateIntervalObject = new \DateInterval($interval_spec);
@@ -137,46 +197,26 @@ class DateIntervalPlus extends \DateInterval {
   }
 
   /**
-   * Create a DateIntervalPlus from php \DateInterval.
+   * Renders the interval.
    *
-   * @param string $interval_spec
-   *   A interval spec.
-   * @param array $settings
-   *   An array of settings.
-   *
-   * @return static
-   *   A DateIntervalPlus object
+   * @return string
+   *   The rendered interval in standard format.
    */
-  public static function createFromIntervalSpec(string $interval_spec, array $settings = []) {
-    return new static($interval_spec, $settings);
+  public function render() {
+    return $this->format(static::FORMAT);
   }
 
   /**
-   * Create a DateIntervalPlus from php \DateInterval.
+   * Format the period.
    *
-   * @param \DateInterval $date_interval
-   *   A php DateInterval object.
-   * @param array $settings
-   *   An array of settings.
+   * @param string $format
+   *   The format string.
    *
-   * @return static
-   *   A DateIntervalPlus object
+   * @return string
+   *   The formatted interval.
    */
-  public static function createFromDateInterval(\DateInterval $date_interval, array $settings = []) {
-    $spec = 'P' . $date_interval->y . 'Y' . $date_interval->m . 'M' . $date_interval->d . 'DT' . $date_interval->h . 'H' . $date_interval->i . 'M' . $date_interval->s . 'S';
-    return new static($spec, $settings);
-  }
-
-  /**
-   * Implements the magic __callStatic method.
-   *
-   * Passes through all unknown static calls onto the DateInterval object.
-   */
-  public static function __callStatic($method, $args) {
-    if (!method_exists('\DateInterval', $method)) {
-      throw new \BadMethodCallException(sprintf('Call to undefined method %s::%s()', get_called_class(), $method));
-    }
-    return call_user_func_array(['\DateInterval', $method], $args);
+  public function format($format) {
+    return $this->dateIntervalObject->format($format);
   }
 
   /**
@@ -214,10 +254,41 @@ class DateIntervalPlus extends \DateInterval {
     return $result === $this->dateIntervalObject ? $this : $result;
   }
 
-
-  public function format($format) {
-    return $this->dateIntervalObject->format($format);
+  /**
+   * Implements the magic __callStatic method.
+   *
+   * Passes through all unknown static calls onto the DateInterval object.
+   */
+  public static function __callStatic($method, $args) {
+    if (!method_exists('\DateInterval', $method)) {
+      throw new \BadMethodCallException(sprintf('Call to undefined method %s::%s()', get_called_class(), $method));
+    }
+    return call_user_func_array(['\DateInterval', $method], $args);
   }
 
+  /**
+   * Implements the magic __clone method.
+   *
+   * Deep-clones the DateInterval object we're wrapping.
+   */
+  public function __clone() {
+    $this->dateIntervalObject = clone($this->dateIntervalObject);
+  }
+
+  /**
+   * Prepares the spec value.
+   *
+   * Changes the spec value before trying to use it, if necessary.
+   * Can be overridden to handle special cases.
+   *
+   * @param mixed $spec
+   *   An interval spec.
+   *
+   * @return mixed
+   *   The massaged spec.
+   */
+  protected function prepareSpec($spec) {
+    return $spec;
+  }
 
 }
