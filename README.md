@@ -11,7 +11,7 @@ Initialising the classes.
 use Drupal\date_interval\DrupalDateInterval;
 
 $date_interval = DrupalDateInterval::createFromIntervalSpec('P2D');
-$interval = $date_interval->format('%d', FALSE, FALSE, TRUE);
+$interval = $date_interval->format('%d', TRUE, ' ', TRUE);
 
 ```
 

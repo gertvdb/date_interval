@@ -9,12 +9,10 @@ namespace Drupal\date_interval;
  * parameters, allowing a date to be created from an existing date interval
  * object or an array of date parts. It also adds a __toString() method
  * to the date interval object.
- *
- * @method static createFromDateString(string $time)
  */
-class DateIntervalPlus extends \DateInterval {
+class DateIntervalPlus {
 
-  const FORMAT = '%Y year %M months %D days %H hours %I minutes %S seconds';
+  const FORMAT = '%Y years %M months %D days %H hours %I minutes %S seconds';
 
   /**
    * The spec used to create the interval.
@@ -36,6 +34,30 @@ class DateIntervalPlus extends \DateInterval {
    * @var \DateInterval
    */
   protected $dateIntervalObject = NULL;
+
+  /**
+   * Create a spec string.
+   *
+   * @param int $years
+   *   The number of years.
+   * @param int $months
+   *   The number of months.
+   * @param int $days
+   *   The number of days.
+   * @param int $hours
+   *   The number of hours.
+   * @param int $minutes
+   *   The number of minutes.
+   * @param int $seconds
+   *   The number of seconds.
+   *
+   * @return string
+   *   The spec string.
+   */
+  public static function createSpec(int $years = 0, int $months = 0, int $days = 0, int $hours = 0, int $minutes = 0, int $seconds = 0) {
+    $spec = 'P' . $years . 'Y' . $months . 'M' . $days . 'DT' . $hours . 'H' . $minutes . 'M' . $seconds . 'S';
+    return $spec;
+  }
 
   /**
    * Create a DateIntervalPlus from php \DateInterval.
@@ -64,8 +86,31 @@ class DateIntervalPlus extends \DateInterval {
    *   A DateIntervalPlus object
    */
   public static function createFromDateInterval(\DateInterval $date_interval, array $settings = []) {
-    $spec = 'P' . $date_interval->y . 'Y' . $date_interval->m . 'M' . $date_interval->d . 'DT' . $date_interval->h . 'H' . $date_interval->i . 'M' . $date_interval->s . 'S';
+    $spec = self::createSpec(
+      $date_interval->y,
+      $date_interval->m,
+      $date_interval->d,
+      $date_interval->h,
+      $date_interval->i,
+      $date_interval->s
+    );
     return new static($spec, $settings);
+  }
+
+  /**
+   * Create a DateIntervalPlus from date string.
+   *
+   * @param string $time
+   *   A time string (ex. 2 days)
+   * @param array $settings
+   *   An array of settings.
+   *
+   * @return static
+   *   A DateIntervalPlus object
+   */
+  public static function createFromDateString(string $time, array $settings = []) {
+    $interval = \DateInterval::createFromDateString($time);
+    return self::createFromDateInterval($interval, $settings);
   }
 
   /**
@@ -83,15 +128,23 @@ class DateIntervalPlus extends \DateInterval {
 
     // Make sure all values are set and are numeric.
     $values = [
-      'years' => isset($interval_array['years']) && is_numeric($interval_array['years']) ? $interval_array['years'] : 0,
-      'months' => isset($interval_array['months']) && is_numeric($interval_array['months']) ? $interval_array['months'] : 0,
-      'days' => isset($interval_array['days']) && is_numeric($interval_array['days']) ? $interval_array['days'] : 0,
-      'hours' => isset($interval_array['hours']) && is_numeric($interval_array['hours']) ? $interval_array['hours'] : 0,
-      'minutes' => isset($interval_array['minutes']) && is_numeric($interval_array['minutes']) ? $interval_array['minutes'] : 0,
-      'seconds' => isset($interval_array['seconds']) && is_numeric($interval_array['seconds']) ? $interval_array['seconds'] : 0,
+      'years' => isset($interval_array['years']) && is_numeric($interval_array['years']) ? (int) $interval_array['years'] : 0,
+      'months' => isset($interval_array['months']) && is_numeric($interval_array['months']) ? (int) $interval_array['months'] : 0,
+      'days' => isset($interval_array['days']) && is_numeric($interval_array['days']) ? (int) $interval_array['days'] : 0,
+      'hours' => isset($interval_array['hours']) && is_numeric($interval_array['hours']) ? (int) $interval_array['hours'] : 0,
+      'minutes' => isset($interval_array['minutes']) && is_numeric($interval_array['minutes']) ? (int) $interval_array['minutes'] : 0,
+      'seconds' => isset($interval_array['seconds']) && is_numeric($interval_array['seconds']) ? (int) $interval_array['seconds'] : 0,
     ];
 
-    $spec = 'P' . $values['years'] . 'Y' . $values['months'] . 'M' . $values['days'] . 'DT' . $values['hours'] . 'H' . $values['minutes'] . 'M' . $values['seconds'] . 'S';
+    $spec = self::createSpec(
+      $values['years'],
+      $values['months'],
+      $values['days'],
+      $values['hours'],
+      $values['minutes'],
+      $values['seconds']
+    );
+
     return new static($spec, $settings);
   }
 
@@ -149,6 +202,16 @@ class DateIntervalPlus extends \DateInterval {
    */
   public function getDays() {
     return $this->dateIntervalObject->d;
+  }
+
+  /**
+   * Getter for hours values.
+   *
+   * @return int
+   *   The number of minutes.
+   */
+  public function getHours() {
+    return $this->dateIntervalObject->h;
   }
 
   /**
@@ -211,12 +274,30 @@ class DateIntervalPlus extends \DateInterval {
    *
    * @param string $format
    *   The format string.
+   * @param string $empty
+   *   The message to show when period is empty (optional).
+   *   When message is not passed an empty period will be formatted.
+   *   (ex : 0 year 0 days)
    *
    * @return string
    *   The formatted interval.
    */
-  public function format($format) {
+  public function format($format, $empty = FALSE) {
+    if ($empty && $this->isEmpty()) {
+      return $empty;
+    }
+
     return $this->dateIntervalObject->format($format);
+  }
+
+  /**
+   * Check if the period is empty.
+   *
+   * @return bool
+   *   A boolean indicating if the period is empty.
+   */
+  public function isEmpty() {
+    return $this->getIntervalSpec() === 'P0Y0M0DT0H0M0S' ? TRUE : FALSE;
   }
 
   /**
@@ -273,6 +354,13 @@ class DateIntervalPlus extends \DateInterval {
    */
   public function __clone() {
     $this->dateIntervalObject = clone($this->dateIntervalObject);
+  }
+
+  /**
+   * Implements the __toString method.
+   */
+  public function __toString() {
+    return $this->format(static::FORMAT);
   }
 
   /**

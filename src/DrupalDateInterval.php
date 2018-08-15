@@ -3,6 +3,7 @@
 namespace Drupal\date_interval;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Extends DateIntervalPlus().
@@ -24,10 +25,22 @@ class DrupalDateInterval extends DateIntervalPlus {
   /**
    * Define indexes for our mappings.
    */
-  const ABBR_SINGULAR = 0;
-  const ABBR_PLURAL = 1;
-  const SINGULAR = 2;
-  const PLURAL = 3;
+  const SINGULAR = 0;
+  const PLURAL = 1;
+
+  /**
+   * The the string translation service.
+   *
+   * @var \Drupal\Core\StringTranslation\TranslationInterface
+   */
+  protected $stringTranslation;
+
+  /**
+   * The language manager service.
+   *
+   * @var \Drupal\Core\Language\LanguageManagerInterface
+   */
+  protected $languageManager;
 
   /**
    * The translation context.
@@ -46,9 +59,12 @@ class DrupalDateInterval extends DateIntervalPlus {
    *   - langcode: (optional) String two letter language code used to control
    *     the result of the format(). Defaults to NULL.
    */
-  public function __construct(string $interval_spec = 'P1D', array $settings = []) {
+  public function __construct(string $interval_spec, array $settings) {
+
+    $this->stringTranslation = $this->getStringTranslation();
+    $this->languageManager = \Drupal::getContainer()->get('language_manager');
     if (!isset($settings['langcode'])) {
-      $settings['langcode'] = \Drupal::languageManager()->getCurrentLanguage()->getId();
+      $settings['langcode'] = $this->languageManager->getCurrentLanguage()->getId();
     }
 
     $this->context = isset($settings['context']) ? $settings['context'] : 'Drupal date interval';
@@ -58,36 +74,56 @@ class DrupalDateInterval extends DateIntervalPlus {
   }
 
   /**
-   * Overrides format().
+   * Format the interval.
    *
    * @param string $format
-   *   A format string using the format options from \DateInterval.
-   * @param bool $show_units
-   *   A boolean indicating whether translatable units
-   *   should be appended to the values.
-   * @param bool $abbr_units
-   *   A boolean indicating whether translatable units
-   *   should be abbreviated. This will only be done when
-   *   $show_units is set to TRUE.
+   *   The format consisting of only valid literals.
+   *   Other items will be removed.
+   * @param bool|array $units
+   *   When TRUE the default units will be appended.
+   *   When FALSE no units will be appended.
+   *   When an array is provided the user can override the units.
+   *   ex. :
+   *   [
+   *      '%d' => [
+   *        DrupalDateInterval::SINGULAR => t('Unit for singular days'),
+   *        DrupalDateInterval::PLURAL => t('Unit for plural days'),
+   *      ]
+   *   ];
+   *   This way the user can fully customize the display for advanced use cases.
+   * @param bool|string $separator
+   *   The separator to add between the literals. Defaults to a space.
    * @param bool $remove_empty_values
-   *   If we just print an interval using the format function, we don't always
-   *   know beforehand which format to pass exactly, to make sure it's properly
-   *   presented. When using '%d %h %i', we prefer not to get this :
-   *     - 1 day 0 hours 4 minutes
-   *   but instead, we prefer to get something like this :
-   *     - 1 day 4 minutes
-   *   Setting this values to TRUE will handle this.
+   *   Boolean whether to remove empty values or leave them. Defaults to TRUE.
    * @param array $settings
    *   (optional) Keyed array of settings. Defaults to empty array.
    *   - langcode: (optional) String two letter language code used to control
    *     the result of the format(). Defaults to NULL.
    *   - context: (optional) Translation context to set on the units.
+   *
+   * @return string
+   *   The formatted string.
    */
-  public function format($format, $show_units = FALSE, $abbr_units = FALSE, $remove_empty_values = TRUE, array $settings = []) {
+  public function format($format, $units = TRUE, $separator = ' ', $remove_empty_values = TRUE, array $settings = []) {
 
-    // Convert the format to an array based on spaces
-    // so we have a better way to handle whitespace.
-    $format_array = explode(' ', $format);
+    // Convert the format to an array based on % literal
+    // so we have a better way to handle the format.
+    $format_array = explode('%', $format);
+
+    // Remove empty values.
+    $format_array = array_filter($format_array);
+
+    // Re add the cutoff % literal sign and remove whitespace.
+    foreach ($format_array as $key => $value) {
+      $format_array[$key] = '%' . preg_replace('/\s+/', '', $value);
+    }
+
+    // Filter out every item that's not part of the literals.
+    $format_array = array_filter($format_array, function ($value) {
+      $literals = array_keys($this->getLiteralsMappedToProperties());
+
+      return in_array($value, $literals);
+    });
 
     // Loop over the format literals that we mapped
     // to properties on the date interval object..
@@ -98,7 +134,7 @@ class DrupalDateInterval extends DateIntervalPlus {
       // interval object that's set to zero.
       if ($remove_empty_values) {
 
-        // Make sure the property exsists just to be save and
+        // Make sure the property exists just to be save and
         // check if it's equal to zero aka empty.
         if (property_exists($this->getPhpDateInterval(), $property) && $this->getPhpDateInterval()->{$property} === 0) {
 
@@ -122,30 +158,32 @@ class DrupalDateInterval extends DateIntervalPlus {
 
       // When the option to add units is set we will add a unit
       // to the to the format string based on the mapped units.
-      if ($show_units) {
+      if ($units) {
 
         // Make sure the property exsists just to be save and
         // check if it's equal to zero aka empty.
         if (property_exists($this->getPhpDateInterval(), $property)) {
 
-          if ($abbr_units) {
-            // Abbreviations should stick to the number.
-            $prefix = '';
-            $mapping_key = $this->getPhpDateInterval()->{$property} === 1 ? DrupalDateInterval::ABBR_SINGULAR : DrupalDateInterval::ABBR_PLURAL;
-          }
-          else {
-            // Full text strings should contain a
-            // space between number and string.
-            $prefix = ' ';
-            $mapping_key = $this->getPhpDateInterval()->{$property} === 1 ? DrupalDateInterval::SINGULAR : DrupalDateInterval::PLURAL;
-          }
+          // Full text strings should contain a
+          // space between number and string.
+          $prefix = ' ';
+          $mapping_key = $this->getPhpDateInterval()->{$property} === 1 ? DrupalDateInterval::SINGULAR : DrupalDateInterval::PLURAL;
 
           foreach ($format_array as $key => $item) {
 
             // Loop the array keys and when literal is somewhere in key
             // append the correct unit.
             if (strpos($item, $literal) !== FALSE) {
-              $replace = str_replace($item, $literal . $prefix . $mappings[$literal][$mapping_key], $literal);
+
+              // The default mapped unit.
+              $mapped_unit = $mappings[$literal][$mapping_key];
+
+              // User can provide custom units per literal so we check for them.
+              if (is_array($units) && isset($units[$literal][$mapping_key])) {
+                $mapped_unit = $units[$literal][$mapping_key];
+              }
+
+              $replace = str_replace($item, $literal . $prefix . $mapped_unit, $literal);
               $format_array[$key] = $replace;
             }
 
@@ -158,7 +196,7 @@ class DrupalDateInterval extends DateIntervalPlus {
 
     // Convert the format back to a string to pass
     // to format function of DateInterval.
-    $format = implode(' ', $format_array);
+    $format = implode($separator, $format_array);
 
     return parent::format($format);
   }
@@ -187,74 +225,50 @@ class DrupalDateInterval extends DateIntervalPlus {
 
     return [
       '%Y' => [
-        $this->t('y', [], ['langcode' => $langcode, 'context' => $context]),
-        $this->t('yrs', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('year', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('years', [], ['langcode' => $langcode, 'context' => $context]),
       ],
       '%y' => [
-        $this->t('y', [], ['langcode' => $langcode, 'context' => $context]),
-        $this->t('yrs', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('year', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('years', [], ['langcode' => $langcode, 'context' => $context]),
       ],
       '%M' => [
-        $this->t('mth', [], ['langcode' => $langcode, 'context' => $context]),
-        $this->t('mths', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('month', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('months', [], ['langcode' => $langcode, 'context' => $context]),
       ],
       '%m' => [
-        $this->t('mth', [], ['langcode' => $langcode, 'context' => $context]),
-        $this->t('mths', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('month', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('months', [], ['langcode' => $langcode, 'context' => $context]),
       ],
       '%D' => [
-        $this->t('d', [], ['langcode' => $langcode, 'context' => $context]),
-        $this->t('d', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('day', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('days', [], ['langcode' => $langcode, 'context' => $context]),
       ],
       '%d' => [
-        $this->t('d', [], ['langcode' => $langcode, 'context' => $context]),
-        $this->t('d', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('day', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('days', [], ['langcode' => $langcode, 'context' => $context]),
       ],
       '%H' => [
-        $this->t('h', [], ['langcode' => $langcode, 'context' => $context]),
-        $this->t('hrs', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('hour', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('hours', [], ['langcode' => $langcode, 'context' => $context]),
       ],
       '%h' => [
-        $this->t('h', [], ['langcode' => $langcode, 'context' => $context]),
-        $this->t('hrs', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('hour', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('hours', [], ['langcode' => $langcode, 'context' => $context]),
       ],
       '%I' => [
-        $this->t('min', [], ['langcode' => $langcode, 'context' => $context]),
-        $this->t('min', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('minute', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('minutes', [], ['langcode' => $langcode, 'context' => $context]),
       ],
       '%i' => [
-        $this->t('min', [], ['langcode' => $langcode, 'context' => $context]),
-        $this->t('min', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('minute', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('minutes', [], ['langcode' => $langcode, 'context' => $context]),
       ],
       '%S' => [
-        $this->t('sec', [], ['langcode' => $langcode, 'context' => $context]),
-        $this->t('sec', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('second', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('seconds', [], ['langcode' => $langcode, 'context' => $context]),
       ],
       '%s' => [
-        $this->t('sec', [], ['langcode' => $langcode, 'context' => $context]),
-        $this->t('sec', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('second', [], ['langcode' => $langcode, 'context' => $context]),
         $this->t('seconds', [], ['langcode' => $langcode, 'context' => $context]),
       ],
