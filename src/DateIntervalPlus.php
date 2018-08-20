@@ -9,10 +9,31 @@ namespace Drupal\date_interval;
  * parameters, allowing a date to be created from an existing date interval
  * object or an array of date parts. It also adds a __toString() method
  * to the date interval object.
+ *
+ * @package Drupal\date_interval
  */
 class DateIntervalPlus {
 
-  const FORMAT = '%Y years %M months %D days %H hours %I minutes %S seconds';
+  /**
+   * The default format.
+   *
+   * @var string
+   */
+  const DEFAULT_FORMAT = '%Y years %M months %D days %H hours %I minutes %S seconds';
+
+  /**
+   * The default interval array.
+   *
+   * @var array
+   */
+  const DEFAULT_INTERVAL_ARRAY = [
+    'years' => 0,
+    'months' => 0,
+    'days' => 0,
+    'hours' => 0,
+    'minutes' => 0,
+    'seconds' => 0,
+  ];
 
   /**
    * The spec used to create the interval.
@@ -121,23 +142,6 @@ class DateIntervalPlus {
   }
 
   /**
-   * Prepares a default interval array.
-   *
-   * @return array
-   *   A default interval array.
-   */
-  private static function prepareDefaultIntervalArray() {
-    return [
-      'years' => 0,
-      'months' => 0,
-      'days' => 0,
-      'hours' => 0,
-      'minutes' => 0,
-      'seconds' => 0,
-    ];
-  }
-
-  /**
    * Create a DateIntervalPlus from keyed array.
    *
    * @param array $intervalArray
@@ -150,12 +154,11 @@ class DateIntervalPlus {
    */
   public static function createFromArray(array $intervalArray = [], array $settings = []) {
 
-    // Make sure all values are set and are numeric.
     $intervalArray = array_filter($intervalArray, function ($value, $key) {
-      return in_array($key, array_keys(self::prepareDefaultIntervalArray())) && is_numeric($value);
+      return in_array($key, array_keys(self::DEFAULT_INTERVAL_ARRAY)) && is_numeric($value);
     }, ARRAY_FILTER_USE_BOTH);
 
-    $values = self::prepareDefaultIntervalArray() + $intervalArray;
+    $values = self::DEFAULT_INTERVAL_ARRAY + $intervalArray;
 
     $spec = self::createSpec(
       $values['years'],
@@ -289,7 +292,7 @@ class DateIntervalPlus {
    *   The rendered interval in standard format.
    */
   public function render() {
-    return $this->format(static::FORMAT);
+    return $this->format(static::DEFAULT_FORMAT);
   }
 
   /**
@@ -383,7 +386,7 @@ class DateIntervalPlus {
    * Implements the __toString method.
    */
   public function __toString() {
-    return $this->format(static::FORMAT);
+    return $this->format(static::DEFAULT_FORMAT);
   }
 
   /**
