@@ -121,6 +121,23 @@ class DateIntervalPlus {
   }
 
   /**
+   * Prepares a default interval array.
+   *
+   * @return array
+   *   A default interval array.
+   */
+  private static function prepareDefaultIntervalArray() {
+    return [
+      'years' => 0,
+      'months' => 0,
+      'days' => 0,
+      'hours' => 0,
+      'minutes' => 0,
+      'seconds' => 0,
+    ];
+  }
+
+  /**
    * Create a DateIntervalPlus from keyed array.
    *
    * @param array $intervalArray
@@ -131,17 +148,14 @@ class DateIntervalPlus {
    * @return static
    *   A DateIntervalPlus object
    */
-  public static function createFromArray(array $intervalArray, array $settings = []) {
+  public static function createFromArray(array $intervalArray = [], array $settings = []) {
 
     // Make sure all values are set and are numeric.
-    $values = [
-      'years' => isset($intervalArray['years']) && is_numeric($intervalArray['years']) ? (int) $intervalArray['years'] : 0,
-      'months' => isset($intervalArray['months']) && is_numeric($intervalArray['months']) ? (int) $intervalArray['months'] : 0,
-      'days' => isset($intervalArray['days']) && is_numeric($intervalArray['days']) ? (int) $intervalArray['days'] : 0,
-      'hours' => isset($intervalArray['hours']) && is_numeric($intervalArray['hours']) ? (int) $intervalArray['hours'] : 0,
-      'minutes' => isset($intervalArray['minutes']) && is_numeric($intervalArray['minutes']) ? (int) $intervalArray['minutes'] : 0,
-      'seconds' => isset($intervalArray['seconds']) && is_numeric($intervalArray['seconds']) ? (int) $intervalArray['seconds'] : 0,
-    ];
+    $intervalArray = array_filter($intervalArray, function ($value, $key) {
+      return in_array($key, array_keys(self::prepareDefaultIntervalArray())) && is_numeric($value);
+    }, ARRAY_FILTER_USE_BOTH);
+
+    $values = self::prepareDefaultIntervalArray() + $intervalArray;
 
     $spec = self::createSpec(
       $values['years'],
