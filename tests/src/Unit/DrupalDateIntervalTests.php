@@ -60,7 +60,7 @@ class DrupalDateIntervalTests extends UnitTestCase {
    */
   public function testFormatOne() {
 
-    $interval_plus = DrupalDateInterval::createFromArray(
+    $intervalPlus = DrupalDateInterval::createFromArray(
       [
         'years' => 1,
         'days' => 4,
@@ -70,7 +70,7 @@ class DrupalDateIntervalTests extends UnitTestCase {
 
     $this->assertSame(
       '1 year 4 days 39 seconds',
-      $interval_plus->format('%y %m %d %s', TRUE, ' ', TRUE, [])
+      $intervalPlus->format('%y %m %d %s', TRUE, ' ', TRUE, [])
     );
   }
 
@@ -79,7 +79,7 @@ class DrupalDateIntervalTests extends UnitTestCase {
    */
   public function testFormatTwo() {
 
-    $interval_plus = DrupalDateInterval::createFromArray(
+    $intervalPlus = DrupalDateInterval::createFromArray(
       [
         'years' => 1,
         'days' => 4,
@@ -89,7 +89,7 @@ class DrupalDateIntervalTests extends UnitTestCase {
 
     $this->assertSame(
       '1-4-39',
-      $interval_plus->format('%y %m %d %s', FALSE, '-', TRUE, ['langcode' => 'en'])
+      $intervalPlus->format('%y %m %d %s', FALSE, '-', TRUE, ['langcode' => 'en'])
     );
   }
 
@@ -98,7 +98,7 @@ class DrupalDateIntervalTests extends UnitTestCase {
    */
   public function testFormatTree() {
 
-    $interval_plus = DrupalDateInterval::createFromArray(
+    $intervalPlus = DrupalDateInterval::createFromArray(
       [
         'years' => 1,
         'days' => 4,
@@ -108,7 +108,7 @@ class DrupalDateIntervalTests extends UnitTestCase {
 
     $this->assertSame(
       '1 year, 0 months, 4 days, 39 seconds',
-      $interval_plus->format('%y %m %d %s', TRUE, ', ', FALSE, ['langcode' => 'en'])
+      $intervalPlus->format('%y %m %d %s', TRUE, ', ', FALSE, ['langcode' => 'en'])
     );
   }
 
@@ -117,7 +117,7 @@ class DrupalDateIntervalTests extends UnitTestCase {
    */
   public function testFormatFour() {
 
-    $interval_plus = DrupalDateInterval::createFromArray(
+    $intervalPlus = DrupalDateInterval::createFromArray(
       [
         'years' => 1,
         'days' => 4,
@@ -127,7 +127,7 @@ class DrupalDateIntervalTests extends UnitTestCase {
 
     $this->assertSame(
       '1 y, 0 mths, 4 d, 39 s',
-      $interval_plus->format(
+      $intervalPlus->format(
         '%y %m %d %s',
         [
           '%y' => [DrupalDateInterval::SINGULAR => 'y', DrupalDateInterval::PLURAL => 'ys'],

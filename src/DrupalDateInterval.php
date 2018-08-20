@@ -52,14 +52,14 @@ class DrupalDateInterval extends DateIntervalPlus {
   /**
    * Constructs a date interval.
    *
-   * @param string $interval_spec
+   * @param string $intervalSpec
    *   An interval specification.
    * @param array $settings
    *   (optional) Keyed array of settings. Defaults to empty array.
    *   - langcode: (optional) String two letter language code used to control
    *     the result of the format(). Defaults to NULL.
    */
-  public function __construct(string $interval_spec, array $settings) {
+  public function __construct(string $intervalSpec, array $settings) {
 
     $this->stringTranslation = $this->getStringTranslation();
     $this->languageManager = \Drupal::getContainer()->get('language_manager');
@@ -70,7 +70,7 @@ class DrupalDateInterval extends DateIntervalPlus {
     $this->context = isset($settings['context']) ? $settings['context'] : 'Drupal date interval';
 
     // Instantiate the parent class.
-    parent::__construct($interval_spec, $settings);
+    parent::__construct($intervalSpec, $settings);
   }
 
   /**
@@ -93,7 +93,7 @@ class DrupalDateInterval extends DateIntervalPlus {
    *   This way the user can fully customize the display for advanced use cases.
    * @param bool|string $separator
    *   The separator to add between the literals. Defaults to a space.
-   * @param bool $remove_empty_values
+   * @param bool $removeEmptyValues
    *   Boolean whether to remove empty values or leave them. Defaults to TRUE.
    * @param array $settings
    *   (optional) Keyed array of settings. Defaults to empty array.
@@ -104,22 +104,22 @@ class DrupalDateInterval extends DateIntervalPlus {
    * @return string
    *   The formatted string.
    */
-  public function format($format, $units = TRUE, $separator = ' ', $remove_empty_values = TRUE, array $settings = []) {
+  public function format($format, $units = TRUE, $separator = ' ', $removeEmptyValues = TRUE, array $settings = []) {
 
     // Convert the format to an array based on % literal
     // so we have a better way to handle the format.
-    $format_array = explode('%', $format);
+    $formatArray = explode('%', $format);
 
     // Remove empty values.
-    $format_array = array_filter($format_array);
+    $formatArray = array_filter($formatArray);
 
     // Re add the cutoff % literal sign and remove whitespace.
-    foreach ($format_array as $key => $value) {
-      $format_array[$key] = '%' . preg_replace('/\s+/', '', $value);
+    foreach ($formatArray as $key => $value) {
+      $formatArray[$key] = '%' . preg_replace('/\s+/', '', $value);
     }
 
     // Filter out every item that's not part of the literals.
-    $format_array = array_filter($format_array, function ($value) {
+    $formatArray = array_filter($formatArray, function ($value) {
       $literals = array_keys($this->getLiteralsMappedToProperties());
 
       return in_array($value, $literals);
@@ -132,7 +132,7 @@ class DrupalDateInterval extends DateIntervalPlus {
       // When the option to remove empty values is passed we need
       // to filter out all literals that have a property on the date
       // interval object that's set to zero.
-      if ($remove_empty_values) {
+      if ($removeEmptyValues) {
 
         // Make sure the property exists just to be save and
         // check if it's equal to zero aka empty.
@@ -140,9 +140,9 @@ class DrupalDateInterval extends DateIntervalPlus {
 
           // Loop the array keys and when literal is somewhere in key
           // remove the entire key.
-          foreach ($format_array as $key => $item) {
+          foreach ($formatArray as $key => $item) {
             if (strpos($item, $literal) !== FALSE) {
-              unset($format_array[$key]);
+              unset($formatArray[$key]);
             }
           }
 
@@ -167,24 +167,24 @@ class DrupalDateInterval extends DateIntervalPlus {
           // Full text strings should contain a
           // space between number and string.
           $prefix = ' ';
-          $mapping_key = $this->getPhpDateInterval()->{$property} === 1 ? DrupalDateInterval::SINGULAR : DrupalDateInterval::PLURAL;
+          $mappingKey = $this->getPhpDateInterval()->{$property} === 1 ? DrupalDateInterval::SINGULAR : DrupalDateInterval::PLURAL;
 
-          foreach ($format_array as $key => $item) {
+          foreach ($formatArray as $key => $item) {
 
             // Loop the array keys and when literal is somewhere in key
             // append the correct unit.
             if (strpos($item, $literal) !== FALSE) {
 
               // The default mapped unit.
-              $mapped_unit = $mappings[$literal][$mapping_key];
+              $mappedUnit = $mappings[$literal][$mappingKey];
 
               // User can provide custom units per literal so we check for them.
-              if (is_array($units) && isset($units[$literal][$mapping_key])) {
-                $mapped_unit = $units[$literal][$mapping_key];
+              if (is_array($units) && isset($units[$literal][$mappingKey])) {
+                $mappedUnit = $units[$literal][$mappingKey];
               }
 
-              $replace = str_replace($item, $literal . $prefix . $mapped_unit, $literal);
-              $format_array[$key] = $replace;
+              $replace = str_replace($item, $literal . $prefix . $mappedUnit, $literal);
+              $formatArray[$key] = $replace;
             }
 
           }
@@ -196,7 +196,7 @@ class DrupalDateInterval extends DateIntervalPlus {
 
     // Convert the format back to a string to pass
     // to format function of DateInterval.
-    $format = implode($separator, $format_array);
+    $format = implode($separator, $formatArray);
 
     return parent::format($format);
   }

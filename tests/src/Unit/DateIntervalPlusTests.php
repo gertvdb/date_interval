@@ -17,7 +17,7 @@ class DateIntervalPlusTests extends UnitTestCase {
   public function testCreateFromArray() {
 
     $spec = 'P1Y0M4DT0H0M39S';
-    $interval_plus = DateIntervalPlus::createFromArray(
+    $intervalPlus = DateIntervalPlus::createFromArray(
       [
         'years' => 1,
         'days' => 4,
@@ -25,14 +25,14 @@ class DateIntervalPlusTests extends UnitTestCase {
       ]
     );
 
-    $this->assertSame(1, $interval_plus->getYears());
-    $this->assertSame(0, $interval_plus->getMonths());
-    $this->assertSame(4, $interval_plus->getDays());
-    $this->assertSame(0, $interval_plus->getHours());
-    $this->assertSame(0, $interval_plus->getMinutes());
-    $this->assertSame(39, $interval_plus->getSeconds());
+    $this->assertSame(1, $intervalPlus->getYears());
+    $this->assertSame(0, $intervalPlus->getMonths());
+    $this->assertSame(4, $intervalPlus->getDays());
+    $this->assertSame(0, $intervalPlus->getHours());
+    $this->assertSame(0, $intervalPlus->getMinutes());
+    $this->assertSame(39, $intervalPlus->getSeconds());
 
-    $this->assertSame($interval_plus->getIntervalSpec(), $spec);
+    $this->assertSame($intervalPlus->getIntervalSpec(), $spec);
   }
 
   /**
@@ -41,7 +41,7 @@ class DateIntervalPlusTests extends UnitTestCase {
   public function testCreateFromArrayInvalid() {
 
     $spec = 'P0Y0M5DT0H0M0S';
-    $interval_plus = DateIntervalPlus::createFromArray(
+    $intervalPlus = DateIntervalPlus::createFromArray(
       [
         'days' => 5,
         'random' => 1,
@@ -49,14 +49,14 @@ class DateIntervalPlusTests extends UnitTestCase {
       ]
     );
 
-    $this->assertSame(0, $interval_plus->getYears());
-    $this->assertSame(0, $interval_plus->getMonths());
-    $this->assertSame(5, $interval_plus->getDays());
-    $this->assertSame(0, $interval_plus->getHours());
-    $this->assertSame(0, $interval_plus->getMinutes());
-    $this->assertSame(0, $interval_plus->getSeconds());
+    $this->assertSame(0, $intervalPlus->getYears());
+    $this->assertSame(0, $intervalPlus->getMonths());
+    $this->assertSame(5, $intervalPlus->getDays());
+    $this->assertSame(0, $intervalPlus->getHours());
+    $this->assertSame(0, $intervalPlus->getMinutes());
+    $this->assertSame(0, $intervalPlus->getSeconds());
 
-    $this->assertSame($interval_plus->getIntervalSpec(), $spec);
+    $this->assertSame($intervalPlus->getIntervalSpec(), $spec);
   }
 
   /**
@@ -66,16 +66,16 @@ class DateIntervalPlusTests extends UnitTestCase {
 
     $spec = 'P1Y0M4DT0H0M39S';
     $interval = new \DateInterval($spec);
-    $interval_plus = DateIntervalPlus::createFromDateInterval($interval);
+    $intervalPlus = DateIntervalPlus::createFromDateInterval($interval);
 
-    $this->assertSame(1, $interval_plus->getYears());
-    $this->assertSame(0, $interval_plus->getMonths());
-    $this->assertSame(4, $interval_plus->getDays());
-    $this->assertSame(0, $interval_plus->getHours());
-    $this->assertSame(0, $interval_plus->getMinutes());
-    $this->assertSame(39, $interval_plus->getSeconds());
+    $this->assertSame(1, $intervalPlus->getYears());
+    $this->assertSame(0, $intervalPlus->getMonths());
+    $this->assertSame(4, $intervalPlus->getDays());
+    $this->assertSame(0, $intervalPlus->getHours());
+    $this->assertSame(0, $intervalPlus->getMinutes());
+    $this->assertSame(39, $intervalPlus->getSeconds());
 
-    $this->assertSame($spec, $interval_plus->getIntervalSpec());
+    $this->assertSame($spec, $intervalPlus->getIntervalSpec());
   }
 
   /**
@@ -84,16 +84,16 @@ class DateIntervalPlusTests extends UnitTestCase {
   public function testCreateFromDateString() {
 
     $spec = 'P1Y0M4DT0H0M39S';
-    $interval_plus = DateIntervalPlus::createFromDateString('1 year 4 days 39 seconds');
+    $intervalPlus = DateIntervalPlus::createFromDateString('1 year 4 days 39 seconds');
 
-    $this->assertSame(1, $interval_plus->getYears());
-    $this->assertSame(0, $interval_plus->getMonths());
-    $this->assertSame(4, $interval_plus->getDays());
-    $this->assertSame(0, $interval_plus->getHours());
-    $this->assertSame(0, $interval_plus->getMinutes());
-    $this->assertSame(39, $interval_plus->getSeconds());
+    $this->assertSame(1, $intervalPlus->getYears());
+    $this->assertSame(0, $intervalPlus->getMonths());
+    $this->assertSame(4, $intervalPlus->getDays());
+    $this->assertSame(0, $intervalPlus->getHours());
+    $this->assertSame(0, $intervalPlus->getMinutes());
+    $this->assertSame(39, $intervalPlus->getSeconds());
 
-    $this->assertSame($spec, $interval_plus->getIntervalSpec());
+    $this->assertSame($spec, $intervalPlus->getIntervalSpec());
   }
 
   /**
@@ -102,10 +102,10 @@ class DateIntervalPlusTests extends UnitTestCase {
   public function testCreateFromDateStringInvalid() {
 
     $spec = 'P0Y0M0DT0H0M0S';
-    $interval_plus = DateIntervalPlus::createFromDateString('random string');
+    $intervalPlus = DateIntervalPlus::createFromDateString('random string');
 
-    $this->assertSame(TRUE, $interval_plus->isEmpty());
-    $this->assertSame($spec, $interval_plus->getIntervalSpec());
+    $this->assertSame(TRUE, $intervalPlus->isEmpty());
+    $this->assertSame($spec, $intervalPlus->getIntervalSpec());
   }
 
   /**
@@ -114,9 +114,9 @@ class DateIntervalPlusTests extends UnitTestCase {
   public function testCreateSpec() {
 
     $spec = 'P1Y0M4DT0H0M39S';
-    $created_spec = DateIntervalPlus::createSpec(1, 0, 4, 0, 0, 39);
+    $createdSpec = DateIntervalPlus::createSpec(1, 0, 4, 0, 0, 39);
 
-    $this->assertSame($spec, $created_spec);
+    $this->assertSame($spec, $createdSpec);
   }
 
   /**
@@ -125,20 +125,20 @@ class DateIntervalPlusTests extends UnitTestCase {
   public function testFormat() {
     $spec = 'P1Y0M4DT0H0M39S';
     $interval = new \DateInterval($spec);
-    $interval_plus = DateIntervalPlus::createFromDateInterval($interval);
+    $intervalPlus = DateIntervalPlus::createFromDateInterval($interval);
 
-    $this->assertSame('1 0 4 0 0 39', $interval_plus->format('%y %m %d %h %i %s'));
-    $this->assertSame('1 0 4 0 0 39', $interval_plus->format('%y %m %d %h %i %s', 'Empty period provided!'));
+    $this->assertSame('1 0 4 0 0 39', $intervalPlus->format('%y %m %d %h %i %s'));
+    $this->assertSame('1 0 4 0 0 39', $intervalPlus->format('%y %m %d %h %i %s', 'Empty period provided!'));
   }
 
   /**
    * Test the create from \DateInterval function.
    */
   public function testFormatInvalid() {
-    $interval_plus = DateIntervalPlus::createFromDateString('random string');
+    $intervalPlus = DateIntervalPlus::createFromDateString('random string');
 
-    $this->assertSame('0 0 0 0 0 0', $interval_plus->format('%y %m %d %h %i %s'));
-    $this->assertSame('Empty period provided!', $interval_plus->format('%y %m %d %h %i %s', 'Empty period provided!'));
+    $this->assertSame('0 0 0 0 0 0', $intervalPlus->format('%y %m %d %h %i %s'));
+    $this->assertSame('Empty period provided!', $intervalPlus->format('%y %m %d %h %i %s', 'Empty period provided!'));
   }
 
 }

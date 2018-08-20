@@ -19,16 +19,14 @@
   ],
   "autoload": {
     "psr-4": {
-      "Drupal\\date_interval\\": "src"
+      "Drupal\\date_interval\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Drupal\\Tests\\date_interval\\": "tests/src"
+      "Drupal\\Tests\\date_interval\\": "tests/src/",
+      "Drupal\\Tests\\": "vendor/drupal/core/tests/Drupal/Tests"
     }
-  },
-  "require": {
-    "php": ">=7.1"
   },
   "require-dev": {
     "drupal/coder": "^8.2",

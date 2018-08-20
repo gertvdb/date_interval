@@ -62,7 +62,7 @@ class DateIntervalPlus {
   /**
    * Create a DateIntervalPlus from php \DateInterval.
    *
-   * @param string $interval_spec
+   * @param string $intervalSpec
    *   A interval spec.
    * @param array $settings
    *   An array of settings.
@@ -70,8 +70,8 @@ class DateIntervalPlus {
    * @return static
    *   A DateIntervalPlus object
    */
-  public static function createFromIntervalSpec(string $interval_spec, array $settings = []) {
-    return new static($interval_spec, $settings);
+  public static function createFromIntervalSpec(string $intervalSpec, array $settings = []) {
+    return new static($intervalSpec, $settings);
   }
 
   /**
@@ -116,7 +116,7 @@ class DateIntervalPlus {
   /**
    * Create a DateIntervalPlus from keyed array.
    *
-   * @param array $interval_array
+   * @param array $intervalArray
    *   A keyed array (years, months, days, hours, minutes, seconds).
    * @param array $settings
    *   An array of settings.
@@ -124,16 +124,16 @@ class DateIntervalPlus {
    * @return static
    *   A DateIntervalPlus object
    */
-  public static function createFromArray(array $interval_array, array $settings = []) {
+  public static function createFromArray(array $intervalArray, array $settings = []) {
 
     // Make sure all values are set and are numeric.
     $values = [
-      'years' => isset($interval_array['years']) && is_numeric($interval_array['years']) ? (int) $interval_array['years'] : 0,
-      'months' => isset($interval_array['months']) && is_numeric($interval_array['months']) ? (int) $interval_array['months'] : 0,
-      'days' => isset($interval_array['days']) && is_numeric($interval_array['days']) ? (int) $interval_array['days'] : 0,
-      'hours' => isset($interval_array['hours']) && is_numeric($interval_array['hours']) ? (int) $interval_array['hours'] : 0,
-      'minutes' => isset($interval_array['minutes']) && is_numeric($interval_array['minutes']) ? (int) $interval_array['minutes'] : 0,
-      'seconds' => isset($interval_array['seconds']) && is_numeric($interval_array['seconds']) ? (int) $interval_array['seconds'] : 0,
+      'years' => isset($intervalArray['years']) && is_numeric($intervalArray['years']) ? (int) $intervalArray['years'] : 0,
+      'months' => isset($intervalArray['months']) && is_numeric($intervalArray['months']) ? (int) $intervalArray['months'] : 0,
+      'days' => isset($intervalArray['days']) && is_numeric($intervalArray['days']) ? (int) $intervalArray['days'] : 0,
+      'hours' => isset($intervalArray['hours']) && is_numeric($intervalArray['hours']) ? (int) $intervalArray['hours'] : 0,
+      'minutes' => isset($intervalArray['minutes']) && is_numeric($intervalArray['minutes']) ? (int) $intervalArray['minutes'] : 0,
+      'seconds' => isset($intervalArray['seconds']) && is_numeric($intervalArray['seconds']) ? (int) $intervalArray['seconds'] : 0,
     ];
 
     $spec = self::createSpec(
@@ -151,23 +151,23 @@ class DateIntervalPlus {
   /**
    * Constructs a date interval plus object.
    *
-   * @param string $interval_spec
+   * @param string $intervalSpec
    *   An interval specification.
    * @param array $settings
    *   (optional) Keyed array of settings. Defaults to empty array.
    *   - langcode: (optional) String two letter language code used to control
    *     the result of the format(). Defaults to NULL.
    */
-  public function __construct(string $interval_spec = 'P1D', array $settings = []) {
+  public function __construct(string $intervalSpec = 'P1D', array $settings = []) {
 
     // Unpack the settings array.
     $this->langcode = !empty($settings['langcode']) ? $settings['langcode'] : NULL;
 
     // Store the spec used to create the interval.
-    $this->intervalSpec = $this->prepareSpec($interval_spec);
+    $this->intervalSpec = $this->prepareSpec($intervalSpec);
 
     try {
-      $this->dateIntervalObject = new \DateInterval($interval_spec);
+      $this->dateIntervalObject = new \DateInterval($intervalSpec);
     }
     catch (\Exception $e) {
       throw new \InvalidArgumentException("Invalid interval spec provided");
