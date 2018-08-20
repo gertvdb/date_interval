@@ -172,14 +172,16 @@ class DateIntervalPlus {
   /**
    * Constructs a date interval plus object.
    *
-   * @param string $intervalSpec
+   * @param string|null $intervalSpec
    *   An interval specification.
    * @param array $settings
    *   (optional) Keyed array of settings. Defaults to empty array.
    *   - langcode: (optional) String two letter language code used to control
    *     the result of the format(). Defaults to NULL.
    */
-  public function __construct(string $intervalSpec = 'P1D', array $settings = []) {
+  public function __construct($intervalSpec = NULL, array $settings = []) {
+
+    $intervalSpec = $intervalSpec ?: 'P1D';
 
     // Unpack the settings array.
     $this->langcode = !empty($settings['langcode']) ? $settings['langcode'] : NULL;
