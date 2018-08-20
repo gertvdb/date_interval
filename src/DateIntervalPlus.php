@@ -38,23 +38,30 @@ class DateIntervalPlus {
   /**
    * Create a spec string.
    *
-   * @param int $years
+   * @param int|null $years
    *   The number of years.
-   * @param int $months
+   * @param int|null $months
    *   The number of months.
-   * @param int $days
+   * @param int|null $days
    *   The number of days.
-   * @param int $hours
+   * @param int|null $hours
    *   The number of hours.
-   * @param int $minutes
+   * @param int|null $minutes
    *   The number of minutes.
-   * @param int $seconds
+   * @param int|null $seconds
    *   The number of seconds.
    *
    * @return string
    *   The spec string.
    */
-  public static function createSpec(int $years = 0, int $months = 0, int $days = 0, int $hours = 0, int $minutes = 0, int $seconds = 0) {
+  public static function createSpec($years = NULL, $months = NULL, $days = NULL, $hours = NULL, $minutes = NULL, $seconds = NULL) {
+    $years = $years ?: 0;
+    $months = $months ?: 0;
+    $days = $days ?: 0;
+    $hours = $hours ?: 0;
+    $minutes = $minutes ?: 0;
+    $seconds = $seconds ?: 0;
+
     $spec = 'P' . $years . 'Y' . $months . 'M' . $days . 'DT' . $hours . 'H' . $minutes . 'M' . $seconds . 'S';
     return $spec;
   }
@@ -77,7 +84,7 @@ class DateIntervalPlus {
   /**
    * Create a DateIntervalPlus from php \DateInterval.
    *
-   * @param \DateInterval $date_interval
+   * @param \DateInterval $dateInterval
    *   A php DateInterval object.
    * @param array $settings
    *   An array of settings.
@@ -85,14 +92,14 @@ class DateIntervalPlus {
    * @return static
    *   A DateIntervalPlus object
    */
-  public static function createFromDateInterval(\DateInterval $date_interval, array $settings = []) {
+  public static function createFromDateInterval(\DateInterval $dateInterval, array $settings = []) {
     $spec = self::createSpec(
-      $date_interval->y,
-      $date_interval->m,
-      $date_interval->d,
-      $date_interval->h,
-      $date_interval->i,
-      $date_interval->s
+      $dateInterval->y,
+      $dateInterval->m,
+      $dateInterval->d,
+      $dateInterval->h,
+      $dateInterval->i,
+      $dateInterval->s
     );
     return new static($spec, $settings);
   }

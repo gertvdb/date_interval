@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\date_interval\Tests\Unit;
+namespace Drupal\Tests\date_interval\Unit;
 
 use Drupal\Tests\UnitTestCase;
 use Drupal\date_interval\DrupalDateInterval;
@@ -10,10 +10,11 @@ use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Language\LanguageInterface;
 
 /**
- * @coversDefaultClass \Drupal\date_interval\DrupalDateInterval
+ * Class DrupalDateIntervalTests.
+ *
  * @group date_interval
  */
-class DrupalDateIntervalTests extends UnitTestCase {
+class DrupalDateIntervalTest extends UnitTestCase {
 
   /**
    * The translation manager used for testing.
@@ -35,20 +36,27 @@ class DrupalDateIntervalTests extends UnitTestCase {
   protected function setUp() {
     parent::setUp();
 
-    $language = $this->createMock(LanguageInterface::class);
+    $container = new ContainerBuilder();
+
+    $language = $this->getMockBuilder(LanguageInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
+
     $language->expects($this->any())
       ->method('getId')
       ->willReturn('en');
 
     $this->translationManager = $this->getStringTranslationStub();
-    $this->languageManager = $this->createMock(LanguageManagerInterface::class);
+
+    $this->languageManager = $this->getMockBuilder(LanguageManagerInterface::class)
+      ->disableOriginalConstructor()
+      ->getMock();
 
     $this->languageManager->expects($this->any())
       ->method('getCurrentLanguage')
       ->with(LanguageInterface::TYPE_INTERFACE)
       ->willReturn($language);
 
-    $container = new ContainerBuilder();
     $container->set('string_translation', $this->translationManager);
     $container->set('language_manager', $this->languageManager);
 

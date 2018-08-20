@@ -1,15 +1,16 @@
 <?php
 
-namespace Drupal\date_interval\Tests\Unit;
+namespace Drupal\Tests\date_interval\Unit;
 
 use Drupal\Tests\UnitTestCase;
 use Drupal\date_interval\DateIntervalPlus;
 
 /**
- * @coversDefaultClass \Drupal\date_interval\DateIntervalPlus
+ * Class DateIntervalPlusTests.
+ *
  * @group date_interval
  */
-class DateIntervalPlusTests extends UnitTestCase {
+class DateIntervalPlusTest extends UnitTestCase {
 
   /**
    * Test the create from array function.
