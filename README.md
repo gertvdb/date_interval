@@ -17,10 +17,8 @@ $interval = $date_interval->format('%d', TRUE, ' ', TRUE);
 
 # Release notes #
 
-`1.0.0`
+`8.x-1.1`
 + Basic setup of the module.
 + Provide a DateIntervalPlus and a DrupalDateInterval class.
-
-`1.0.1`
-+ Add tests for DateIntervalPlus and DrupalDateInterval.
++ Provide unit tests for DateIntervalPlus and DrupalDateInterval.
 + Improve flexibility and unit mapping of format() function.
