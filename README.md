@@ -8,10 +8,12 @@ Initialising the classes.
  
 ```
 
-use Drupal\date_interval\DrupalDateInterval;
+use Drupal\date_interval\DateIntervalPlusFactory;
+use Drupal\date_interval\Formatter\DrupalDateIntervalFormatter;
 
-$dateInterval = DrupalDateInterval::createFromIntervalSpec('P2D');
-$interval = $dateInterval->format('%d', TRUE, ' ', TRUE);
+$dateInterval = DateIntervalPlusFactory::createFromIntervalSpec('P2D');
+$dateFormatter = new DrupalDateIntervalFormatter(TRUE, ' ', TRUE);
+$interval = $dateFormatter->format($dateInterval, '%d');
 
 ```
 

@@ -11,8 +11,9 @@ namespace Drupal\date_interval;
  * to the date interval object.
  *
  * @package Drupal\date_interval
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
-class DateIntervalPlus {
+class DateIntervalPlus implements DateIntervalInterface {
 
   /**
    * The default format.
@@ -57,143 +58,32 @@ class DateIntervalPlus {
   protected $dateIntervalObject = NULL;
 
   /**
-   * Create a spec string.
-   *
-   * @param int|null $years
-   *   The number of years.
-   * @param int|null $months
-   *   The number of months.
-   * @param int|null $days
-   *   The number of days.
-   * @param int|null $hours
-   *   The number of hours.
-   * @param int|null $minutes
-   *   The number of minutes.
-   * @param int|null $seconds
-   *   The number of seconds.
-   *
-   * @return string
-   *   The spec string.
-   */
-  public static function createSpec($years = NULL, $months = NULL, $days = NULL, $hours = NULL, $minutes = NULL, $seconds = NULL) {
-    $years = $years ?: 0;
-    $months = $months ?: 0;
-    $days = $days ?: 0;
-    $hours = $hours ?: 0;
-    $minutes = $minutes ?: 0;
-    $seconds = $seconds ?: 0;
-
-    $spec = 'P' . $years . 'Y' . $months . 'M' . $days . 'DT' . $hours . 'H' . $minutes . 'M' . $seconds . 'S';
-    return $spec;
-  }
-
-  /**
-   * Create a DateIntervalPlus from php \DateInterval.
-   *
-   * @param string $intervalSpec
-   *   A interval spec.
-   * @param array $settings
-   *   An array of settings.
-   *
-   * @return static
-   *   A DateIntervalPlus object
-   */
-  public static function createFromIntervalSpec(string $intervalSpec, array $settings = []) {
-    return new static($intervalSpec, $settings);
-  }
-
-  /**
-   * Create a DateIntervalPlus from php \DateInterval.
-   *
-   * @param \DateInterval $dateInterval
-   *   A php DateInterval object.
-   * @param array $settings
-   *   An array of settings.
-   *
-   * @return static
-   *   A DateIntervalPlus object
-   */
-  public static function createFromDateInterval(\DateInterval $dateInterval, array $settings = []) {
-    $spec = self::createSpec(
-      $dateInterval->y,
-      $dateInterval->m,
-      $dateInterval->d,
-      $dateInterval->h,
-      $dateInterval->i,
-      $dateInterval->s
-    );
-    return new static($spec, $settings);
-  }
-
-  /**
-   * Create a DateIntervalPlus from date string.
-   *
-   * @param string $time
-   *   A time string (ex. 2 days)
-   * @param array $settings
-   *   An array of settings.
-   *
-   * @return static
-   *   A DateIntervalPlus object
-   */
-  public static function createFromDateString(string $time, array $settings = []) {
-    $interval = \DateInterval::createFromDateString($time);
-    return self::createFromDateInterval($interval, $settings);
-  }
-
-  /**
-   * Create a DateIntervalPlus from keyed array.
-   *
-   * @param array $intervalArray
-   *   A keyed array (years, months, days, hours, minutes, seconds).
-   * @param array $settings
-   *   An array of settings.
-   *
-   * @return static
-   *   A DateIntervalPlus object
-   */
-  public static function createFromArray(array $intervalArray = [], array $settings = []) {
-
-    $intervalArray = array_filter($intervalArray, function ($value, $key) {
-      return in_array($key, array_keys(self::DEFAULT_INTERVAL_ARRAY)) && is_numeric($value);
-    }, ARRAY_FILTER_USE_BOTH);
-
-    $values = self::DEFAULT_INTERVAL_ARRAY + $intervalArray;
-
-    $spec = self::createSpec(
-      $values['years'],
-      $values['months'],
-      $values['days'],
-      $values['hours'],
-      $values['minutes'],
-      $values['seconds']
-    );
-
-    return new static($spec, $settings);
-  }
-
-  /**
    * Constructs a date interval plus object.
    *
-   * @param string|null $intervalSpec
+   * @param string $intervalSpec
    *   An interval specification.
+   * @param int $invert
+   *   Whether to invert the interval.
+   *   Is 1 if the interval represents a negative
+   *   time period and 0 otherwise.
    * @param array $settings
    *   (optional) Keyed array of settings. Defaults to empty array.
    *   - langcode: (optional) String two letter language code used to control
    *     the result of the format(). Defaults to NULL.
    */
-  public function __construct($intervalSpec = NULL, array $settings = []) {
-
-    $intervalSpec = $intervalSpec ?: 'P1D';
+  public function __construct($intervalSpec, $invert = 0, array $settings = []) {
 
     // Unpack the settings array.
     $this->langcode = !empty($settings['langcode']) ? $settings['langcode'] : NULL;
 
     // Store the spec used to create the interval.
-    $this->intervalSpec = $this->prepareSpec($intervalSpec);
+    $this->intervalSpec = $intervalSpec;
 
     try {
       $this->dateIntervalObject = new \DateInterval($intervalSpec);
+      if ($invert) {
+        $this->invert();
+      }
     }
     catch (\Exception $e) {
       throw new \InvalidArgumentException("Invalid interval spec provided");
@@ -201,13 +91,37 @@ class DateIntervalPlus {
   }
 
   /**
-   * Getter for year values.
+   * Invert the interval.
    *
+   * @return $this
+   */
+  public function invert() {
+    $this->dateIntervalObject->invert = $this->dateIntervalObject->invert ? 0 : 1;
+    return $this;
+  }
+
+  /**
+   * Getter for year values.
+   *v
    * @return int
    *   The number of years.
    */
   public function getYears() {
     return $this->dateIntervalObject->y;
+  }
+
+  /**
+   * Setter for year values.
+   *
+   * @param int $year
+   *   The new number of years.
+   *
+   * @return $this
+   *   The object itself so setters can be chained.
+   */
+  public function setYears(int $year) {
+    $this->dateIntervalObject->y = $year;
+    return $this;
   }
 
   /**
@@ -221,6 +135,20 @@ class DateIntervalPlus {
   }
 
   /**
+   * Setter for month values.
+   *
+   * @param int $month
+   *   The new number of month.
+   *
+   * @return $this
+   *   The object itself so setters can be chained.
+   */
+  public function setMonth(int $month) {
+    $this->dateIntervalObject->m = $month;
+    return $this;
+  }
+
+  /**
    * Getter for days values.
    *
    * @return int
@@ -228,6 +156,20 @@ class DateIntervalPlus {
    */
   public function getDays() {
     return $this->dateIntervalObject->d;
+  }
+
+  /**
+   * Setter for day values.
+   *
+   * @param int $days
+   *   The new number of days.
+   *
+   * @return $this
+   *   The object itself so setters can be chained.
+   */
+  public function setDays(int $days) {
+    $this->dateIntervalObject->d = $days;
+    return $this;
   }
 
   /**
@@ -241,6 +183,20 @@ class DateIntervalPlus {
   }
 
   /**
+   * Setter for hours values.
+   *
+   * @param int $hours
+   *   The new number of hours.
+   *
+   * @return $this
+   *   The object itself so setters can be chained.
+   */
+  public function setHours(int $hours) {
+    $this->dateIntervalObject->h = $hours;
+    return $this;
+  }
+
+  /**
    * Getter for minutes values.
    *
    * @return int
@@ -251,6 +207,20 @@ class DateIntervalPlus {
   }
 
   /**
+   * Setter for minutes values.
+   *
+   * @param int $minutes
+   *   The new number of minutes.
+   *
+   * @return $this
+   *   The object itself so setters can be chained.
+   */
+  public function setMinutes(int $minutes) {
+    $this->dateIntervalObject->i = $minutes;
+    return $this;
+  }
+
+  /**
    * Getter for seconds values.
    *
    * @return int
@@ -258,6 +228,40 @@ class DateIntervalPlus {
    */
   public function getSeconds() {
     return $this->dateIntervalObject->s;
+  }
+
+  /**
+   * Setter for seconds values.
+   *
+   * @param int $seconds
+   *   The new number of seconds.
+   *
+   * @return $this
+   *   The object itself so setters can be chained.
+   */
+  public function setSeconds(int $seconds) {
+    $this->dateIntervalObject->s = $seconds;
+    return $this;
+  }
+
+  /**
+   * Getter for micro seconds values.
+   *
+   * @return float
+   *   The number of micro seconds.
+   */
+  public function getMicroSeconds() {
+    return $this->dateIntervalObject->f;
+  }
+
+  /**
+   * Setter for micro seconds values.
+   *
+   * @param float $microSeconds
+   *   The number of micro seconds.
+   */
+  public function setMicroSeconds(float $microSeconds) {
+    $this->dateIntervalObject->f = $microSeconds;
   }
 
   /**
@@ -273,47 +277,11 @@ class DateIntervalPlus {
   /**
    * Gets a clone of the proxied PHP \DateInterval object wrapped by this class.
    *
-   * @param bool $clone
-   *   FALSE to return the original proxied \DateInterval object. By default a
-   *   clone will be returned, to avoid proxy pattern breaks.
-   *
    * @return \DateInterval
-   *   A clone of the PHP \DateInterval object, or the original instance
-   *   if $clone is FALSE.
+   *   A clone of the PHP \DateInterval object.
    */
-  public function getPhpDateInterval($clone = TRUE) {
-    return $clone ? clone $this->dateIntervalObject : $this->dateIntervalObject;
-  }
-
-  /**
-   * Renders the interval.
-   *
-   * @return string
-   *   The rendered interval in standard format.
-   */
-  public function render() {
-    return $this->format(static::DEFAULT_FORMAT);
-  }
-
-  /**
-   * Format the period.
-   *
-   * @param string $format
-   *   The format string.
-   * @param string $empty
-   *   The message to show when period is empty (optional).
-   *   When message is not passed an empty period will be formatted.
-   *   (ex : 0 year 0 days)
-   *
-   * @return string
-   *   The formatted interval.
-   */
-  public function format($format, $empty = FALSE) {
-    if ($empty && $this->isEmpty()) {
-      return $empty;
-    }
-
-    return $this->dateIntervalObject->format($format);
+  public function getPhpDateInterval() {
+    return clone $this->dateIntervalObject;
   }
 
   /**
@@ -323,7 +291,13 @@ class DateIntervalPlus {
    *   A boolean indicating if the period is empty.
    */
   public function isEmpty() {
-    return $this->getIntervalSpec() === 'P0Y0M0DT0H0M0S' ? TRUE : FALSE;
+    return $this->getYears() === 0 &&
+      $this->getMonths() === 0 &&
+      $this->getDays() === 0 &&
+      $this->getHours() === 0 &&
+      $this->getMinutes() === 0 &&
+      $this->getSeconds() === 0 &&
+      $this->getMicroSeconds() === 0;
   }
 
   /**
@@ -386,23 +360,7 @@ class DateIntervalPlus {
    * Implements the __toString method.
    */
   public function __toString() {
-    return $this->format(static::DEFAULT_FORMAT);
-  }
-
-  /**
-   * Prepares the spec value.
-   *
-   * Changes the spec value before trying to use it, if necessary.
-   * Can be overridden to handle special cases.
-   *
-   * @param mixed $spec
-   *   An interval spec.
-   *
-   * @return mixed
-   *   The massaged spec.
-   */
-  protected function prepareSpec($spec) {
-    return $spec;
+    return $this->dateIntervalObject->format(static::DEFAULT_FORMAT);
   }
 
 }

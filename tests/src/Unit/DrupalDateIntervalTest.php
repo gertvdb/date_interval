@@ -62,6 +62,8 @@ class DrupalDateIntervalTest extends UnitTestCase {
 
     $this->builder->set('string_translation', $this->translationManager);
     $this->builder->set('language_manager', $this->languageManager);
+
+    \Drupal::setContainer($this->builder);
   }
 
   /**
